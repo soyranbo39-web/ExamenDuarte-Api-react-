@@ -259,6 +259,10 @@ _pkginfo.txt
 # but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
+# Python type-checking caches
+.mypy_cache/
+.cache/mypy/
+
 # Others
 ClientBin/
 ~$*
