@@ -7,6 +7,8 @@ from app.core.config import AUTH_COOKIE_NAME,AUTH_COOKIE_SECURE,AUTH_TOKEN_EXPIR
 from app.api.v1.schemas import AuthOut,Registro,Login,UserOut,SessionOut,CokiesOut
 from app.core.db import get_db
 from app.core.config import settings
+from .repository import UserRepository
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 #cuando exista el repositori iria en esta parte 
 repo = UserRepository() 
