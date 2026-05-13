@@ -1,26 +1,27 @@
-import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# DATOS PARA LA BASE DE SQLITE
-BASE_DIR = Path(__file__).resolve().parents[2]
-SQLITE_DB_PATH = BASE_DIR / "data" / "CantoEstaHermoso"
+from pydantic import Field, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    AUTH_SECRET_KEY: SecretStr = Field(..., min_length=32)
+    AUTH_ALGORITHM: str 
+    AUTH_TOKEN_EXPIRE_MINUTES: int 
+    AUTH_COOKIE_NAME: str 
+    AUTH_COOKIE_SECURE: bool 
+    AUTH_COOKIE_HTTPONLY: bool
+    AUTH_COOKIE_SAMESITE: str
+    SQLITE_DB_PATH: str 
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
+settings = Settings()
+SQLITE_DB_PATH = Path(settings.SQLITE_DB_PATH)
 DATABASE_URL = f"sqlite:///{SQLITE_DB_PATH}"
-
-#galleta
-AUTH_COOKIE_NAME = os.getenv("AUTH_COOKIE_NAME")
-AUTH_COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE").lower() == "true"
-
-#token
-ALGORITHM = os.getenv("ALGORITHM")
-if not ALGORITHM:
-  raise RuntimeError("ALGORYTHM no encontrado en el entorno")
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-  raise RuntimeError("SECRET_KEY no encontrada en el entorno")
-AUTH_TOKEN_EXPIRE_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRE_MINUTES"))
-if not AUTH_TOKEN_EXPIRE_MINUTES:
-  raise RuntimeError("AUTH_TOKEN_EXPIRE_MINUTES no encontrada en el entorno")
-    
