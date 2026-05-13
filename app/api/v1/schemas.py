@@ -5,12 +5,13 @@ from pydantic import BaseModel, Field
 #Aqui estuvo canto 
 
 class Registro (BaseModel):
-    username : str =  Field(min_length=1,max_length=100)
+    name : str = Field(min_length=1,max_length=100)
+    username : str =  Field(min_length=1,max_length=50)
     password : str = Field(min_length=1, max_length= 100)
 
 class Login(BaseModel):
     username : str
-    passwrod : str 
+    password : str 
 
 class CokiesOut(BaseModel):
     name: str
@@ -26,6 +27,7 @@ class AuthOut(BaseModel):
      
 class UserOut(BaseModel):
     id : str
+    username : str
     username : str
 
 class SessionOut(BaseModel):
