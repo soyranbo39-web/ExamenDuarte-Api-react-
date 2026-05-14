@@ -4,7 +4,7 @@ from pwdlib import PasswordHash
 import jwt
 from datetime import timedelta, datetime, timezone
 from .config import settings
-from ..api.v1.schemas import AuthOut, CokiesOut
+from ..api.v1.schemas import TokenResponde, CokiesOut
 
 password_hash = PasswordHash.recommended()
 DUMMY_HASH = password_hash.hash("dummypassword")
@@ -33,8 +33,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     )
     return encoded_jwt
 
-def set_auth_cookie(response: Response, user_id: int):
-    token = create_access_token(data={"sub": str(user_id)})
+#Guardar el token en galleta
+def set_auth_cookie(response: Response, username: str):
+    token = create_access_token(data={"sub": str(username)})
     
     response.set_cookie(
         key=settings.AUTH_COOKIE_NAME,
@@ -47,19 +48,14 @@ def set_auth_cookie(response: Response, user_id: int):
     )
     return token
 
-def get_auth_response(token: str) -> AuthOut:
-    return AuthOut(
+#Respuesta para el login (el return)
+def set_auth_response(token: str) -> TokenResponde:
+    return TokenResponde(
         access_token=token,
-        token_type="bearer",
-        cookie=CokiesOut(
-            name=settings.AUTH_COOKIE_NAME,
-            http_only=settings.AUTH_COOKIE_HTTPONLY,
-            secure=settings.AUTH_COOKIE_SECURE,
-            same_site=settings.AUTH_COOKIE_SAMESITE,
-            max_age_seconds=settings.AUTH_TOKEN_EXPIRE_MINUTES * 60
-        )
+        token_type="bearer"
     )
 
+#Obtener token por medio de una galleta
 def get_token_from_cookie(request: Request) -> str:
     token = request.cookies.get(settings.AUTH_COOKIE_NAME)
     
@@ -74,5 +70,6 @@ def get_token_from_cookie(request: Request) -> str:
         
     return token
 
+#Obtener el token por el header
 def get_token_from_header(token: str = Depends(oauth2_scheme)) -> str:
     return token
