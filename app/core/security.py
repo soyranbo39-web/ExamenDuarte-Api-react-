@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 
 from .config import settings
+from ..api.v1.schemas import TokenResponde, CokiesOut
 
 password_hash = PasswordHash.recommended()
 DUMMY_HASH = password_hash.hash("dummypassword")
@@ -34,8 +35,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     )
     return encoded_jwt
 
-def set_auth_cookie(response: Response, user_id: int):
-    token = create_access_token(data={"sub": str(user_id)})
+#Guardar el token en galleta
+def set_auth_cookie(response: Response, username: str):
+    token = create_access_token(data={"sub": str(username)})
     
     response.set_cookie(
         key=settings.AUTH_COOKIE_NAME,
@@ -48,19 +50,38 @@ def set_auth_cookie(response: Response, user_id: int):
     )
     return token
 
-def get_token_from_cookie(request: Request) -> str:
+#Respuesta para el login (el return)
+def set_auth_response(token: str) -> TokenResponde:
+    return TokenResponde(
+        access_token=token,
+        token_type="bearer"
+    )
+
+#Obtener token por medio de una galleta
+def get_token_from_cookie(request: Request) -> str | None:
     token = request.cookies.get(settings.AUTH_COOKIE_NAME)
-    
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No se encontró la cookie de sesión"
-        )
+        return None
     
     if token.startswith("Bearer "):
         return token.replace("Bearer ", "")
         
     return token
 
-def get_token_from_header(token: str = Depends(oauth2_scheme)) -> str:
-    return token
+#Obtener el token por el header
+def get_token_from_header(auth_header: str | None) -> str | None:
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    return auth_header.replace("Bearer ", "")
+
+#funcion para decodificar el token
+def decode_token(token_string: str):
+    try:
+        payload = jwt.decode(
+            token_string, 
+            settings.AUTH_SECRET_KEY.get_secret_value(), 
+            algorithms=[settings.AUTH_ALGORITHM]
+        )
+        return payload
+    except jwt.PyJWTError:
+        return None
