@@ -1,10 +1,11 @@
-from fastapi.security import OAuth2PasswordBearer
-from fastapi import Response, HTTPException, Request, status, Depends
-from pwdlib import PasswordHash
+from datetime import datetime, timedelta, timezone
+
 import jwt
-from datetime import timedelta, datetime, timezone
+from fastapi import Depends, HTTPException, Request, Response, status
+from fastapi.security import OAuth2PasswordBearer
+from pwdlib import PasswordHash
+
 from .config import settings
-from ..api.v1.schemas import AuthOut, CokiesOut
 
 password_hash = PasswordHash.recommended()
 DUMMY_HASH = password_hash.hash("dummypassword")
@@ -46,19 +47,6 @@ def set_auth_cookie(response: Response, user_id: int):
         path="/"
     )
     return token
-
-def get_auth_response(token: str) -> AuthOut:
-    return AuthOut(
-        access_token=token,
-        token_type="bearer",
-        cookie=CokiesOut(
-            name=settings.AUTH_COOKIE_NAME,
-            http_only=settings.AUTH_COOKIE_HTTPONLY,
-            secure=settings.AUTH_COOKIE_SECURE,
-            same_site=settings.AUTH_COOKIE_SAMESITE,
-            max_age_seconds=settings.AUTH_TOKEN_EXPIRE_MINUTES * 60
-        )
-    )
 
 def get_token_from_cookie(request: Request) -> str:
     token = request.cookies.get(settings.AUTH_COOKIE_NAME)
