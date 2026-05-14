@@ -4,11 +4,14 @@ import jwt
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
 
 from .config import settings
 from ..api.v1.schemas import TokenResponde, CokiesOut
 
-password_hash = PasswordHash.recommended()
+# password_hash = PasswordHash.recommended()
+argon2_hasher = Argon2Hasher()
+password_hash = PasswordHash(hashers=[argon2_hasher])
 DUMMY_HASH = password_hash.hash("dummypassword")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
