@@ -24,12 +24,17 @@ from app.core.config import (
     settings,
 )
 from app.core.db import get_db
+from app.core.security import (
+    create_access_token,
+    get_auth_response,
+    set_auth_cookie,
+    verify_password,
+)
 
 from .repository import UserRepository
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-#cuando exista el repositori iria en esta parte 
-repo = UserRepository() 
+
 
 
 
@@ -45,7 +50,7 @@ def login (
     )]
     ):
     
-    repository = UserRepository(db) # type: ignore
+    repository = UserRepository(db) 
     user = repository.authenticate_user(payload.username,payload.password)
     if not user : 
         raise HTTPException(
@@ -53,7 +58,7 @@ def login (
             detail="Invalid credentials"
             )
 
-    token = create_access_token( # type: ignore
+    token = create_access_token( 
         subject=user.id,
         expires_minutes=settings.AUTH_TOKEN_EXPIRE_MINUTES
     )
@@ -77,11 +82,10 @@ def login (
             access_token=token,
             user=Login.model_validate(user)
         ),
-        transport=LoginIdentificadorOut(
-            header=HeaderOut(Authorization=bearer_value), # type: ignore
-            cookie=CokiesOut(access_token=bearer_value) # type: ignore
+        transports=LoginIdentificadorOut(
+            header=HeaderOut(Authorization=bearer_value),
+            cookie=CokiesOut(access_token=bearer_value)
         )
-       
     )
     
     
