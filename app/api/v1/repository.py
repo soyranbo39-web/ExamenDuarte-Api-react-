@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.auth import User
+from app.core.security import verify_password
 
 
 class UserRepository:
@@ -31,7 +32,7 @@ class UserRepository:
         if not user:
             return None
         #se debera verificar el passwrod cuando exista el el security 
-        if not self.verify_password(password, user.password_hash):
+        if not verify_password(password, user.password_hash):
             return None
         return user
     
