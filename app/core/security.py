@@ -73,3 +73,15 @@ def get_token_from_cookie(request: Request) -> str:
 #Obtener el token por el header
 def get_token_from_header(token: str = Depends(oauth2_scheme)) -> str:
     return token
+
+#funcion para decodificar el token
+def decode_token(token_string: str):
+    try:
+        payload = jwt.decode(
+            token_string, 
+            settings.AUTH_SECRET_KEY.get_secret_value(), 
+            algorithms=[settings.AUTH_ALGORITHM]
+        )
+        return payload
+    except jwt.PyJWTError:
+        return None
