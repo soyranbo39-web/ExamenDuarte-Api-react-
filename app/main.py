@@ -6,14 +6,11 @@ from app.api.v1.router import router as auth_router
 from app.core.config import DATABASE_URL
 from app.core.db import Base, engine
 from fastapi.staticfiles import StaticFiles
-
-load_dotenv()
-localhost_url = os.getenv("LOCALHOST")
-ip_direction_url = os.getenv("IP_DIRECTION")
+from .core.config import settings
 
 origins = [
-    localhost_url,
-    ip_direction_url
+    settings.LOCALHOST,
+    settings.IP_DIRECTION
 ]
 
 def create_app() ->FastAPI: 

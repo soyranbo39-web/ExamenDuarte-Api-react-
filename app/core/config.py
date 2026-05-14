@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     AUTH_COOKIE_SECURE: bool 
     AUTH_COOKIE_HTTPONLY: bool
     AUTH_COOKIE_SAMESITE: str
-    SQLITE_DB_PATH: str 
+    SQLITE_DB_PATH: str
+
+    LOCALHOST: str 
+    IP_DIRECTION: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
