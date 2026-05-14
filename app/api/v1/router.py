@@ -10,6 +10,7 @@ from passlib.ifc import PasswordHash
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from ...models.auth import User
+from .schemas import Registro
 
 from app.api.v1.schemas import (
     Login,
@@ -23,6 +24,7 @@ from app.core.config import (
 from app.core.db import get_db
 from app.core.security import (
     create_access_token,
+    get_password_hash
 )
 
 from .repository import UserRepository
@@ -114,6 +116,40 @@ def login (
         
     )
     return LoginResponde.from_user_and_token(user, token)
+
+@router.post("/usuarios", status_code=status.HTTP_201_CREATED)
+async def registrar_usuario(user: Registro, db: Session = Depends(get_db)):
+    existing_user = db.exec(
+        select(User).where(User.username == user.username)
+    ).first()
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El nombre de usuario ya está registrado"
+        )
+
+    hashed_password = get_password_hash(user.password)
+
+    new_user = User(
+        full_name=user.full_name,
+        username=user.username,
+        password=hashed_password
+    )
+
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        return {"message": "Usuario creado exitosamente"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Hubo un fallo en la creación del usuario"
+        )
     
 @router.get("/users/me")
 async def read_users_me(request: Request, db: Session = Depends(get_db)):
