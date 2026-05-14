@@ -1,14 +1,30 @@
 
 from os import name
-from typing import Optional,Annotated
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status,Query
+from typing import Annotated, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
 from passlib.ifc import PasswordHash
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
-from app.core.config import AUTH_COOKIE_NAME,AUTH_COOKIE_SECURE,AUTH_TOKEN_EXPIRE_MINUTES
-from app.api.v1.schemas import Registro, Login,LoginResponde,LoginIdentificadorOut, CokiesOut, HeaderOut ,SessionOut,TokenResponde
+
+from app.api.v1.schemas import (
+    CokiesOut,
+    HeaderOut,
+    Login,
+    LoginIdentificadorOut,
+    LoginResponde,
+    Registro,
+    SessionOut,
+    TokenResponde,
+)
+from app.core.config import (
+    AUTH_COOKIE_NAME,
+    AUTH_COOKIE_SECURE,
+    AUTH_TOKEN_EXPIRE_MINUTES,
+    settings,
+)
 from app.core.db import get_db
-from app.core.config import settings
+
 from .repository import UserRepository
 
 router = APIRouter(prefix="/auth", tags=["auth"])
