@@ -12,15 +12,26 @@ class Registro(BaseModel):
     password : str = Field(min_length=1, max_length= 100)
     model_config = ConfigDict(from_attributes=True)
     
-    
 class Login(Registro):
     id : int 
     is_active : bool
 
+class UserOut(BaseModel):
+    id: str
+    username: str
+    full_name: str = Field(alias="name")
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+class SessionOut(BaseModel):
+    user_id: str
+    authenticated: bool
+    authenticated_via_cookie: bool
+    cookie_name: str
+
 class TokenResponde(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    user : Login
+    user : UserOut
 
 
 class CokiesOut(BaseModel):
@@ -39,12 +50,26 @@ class LoginIdentificadorOut(BaseModel):
 class LoginResponde(BaseModel):
     body: TokenResponde
     transports : LoginIdentificadorOut
+    @classmethod
+    def from_user_and_token(cantomelastimas, user, token: str):
+        bearer = f"Bearer {token}"
+        return cantomelastimas(
+            body=TokenResponde(
+                access_token=token,
+                user=UserOut.model_validate(user),
+            ),
+            transports=LoginIdentificadorOut(
+                header=HeaderOut(Authorization=bearer),
+                cookie=CokiesOut(access_token=bearer),
+            ),
+        )
+    
     
 
-class SessionOut(BaseModel):
-    user_id: str
-    authenticated: bool
-    authenticated_via_cookie: bool
-    cookie_name: str
+
+    
+
+    
+
     
 
