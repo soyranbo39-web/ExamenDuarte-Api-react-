@@ -56,14 +56,10 @@ def set_auth_response(token: str) -> TokenResponde:
     )
 
 #Obtener token por medio de una galleta
-def get_token_from_cookie(request: Request) -> str:
+def get_token_from_cookie(request: Request) -> str | None:
     token = request.cookies.get(settings.AUTH_COOKIE_NAME)
-    
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No se encontró la cookie de sesión"
-        )
+        return None
     
     if token.startswith("Bearer "):
         return token.replace("Bearer ", "")
@@ -71,8 +67,10 @@ def get_token_from_cookie(request: Request) -> str:
     return token
 
 #Obtener el token por el header
-def get_token_from_header(token: str = Depends(oauth2_scheme)) -> str:
-    return token
+def get_token_from_header(auth_header: str | None) -> str | None:
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    return auth_header.replace("Bearer ", "")
 
 #funcion para decodificar el token
 def decode_token(token_string: str):
