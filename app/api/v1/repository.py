@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-
+from fastapi import Request
 from app.models.auth import User
-from app.core.security import verify_password
+from app.core.security import verify_password, get_token_from_cookie, get_token_from_header
 
 
 class UserRepository:
@@ -36,7 +36,14 @@ class UserRepository:
             return None
         return user
     
-       
+    def get_token(request: Request) -> str | None:
+        token = get_token_from_cookie(request)
+        
+        if not token:
+            auth_header = request.headers.get("Authorization")
+            token = get_token_from_header(auth_header)
+        
+        return token    
    
     
     
