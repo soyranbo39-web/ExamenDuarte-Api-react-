@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request, R
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.ifc import PasswordHash
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from ...models.auth import User
 
 from app.api.v1.schemas import (
     Login,
@@ -113,7 +115,24 @@ def login (
     )
     return LoginResponde.from_user_and_token(user, token)
     
+@router.get("/users/me")
+async def read_users_me(request: Request, db: Session = Depends(get_db)):
+    repository = UserRepository(db)
+    token_string = repository.get_token(request)
+    if not token_string:
+        raise HTTPException(status_code=401, detail="No autorizado")
+
+    payload = repository.decode(token_string)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(status_code=401, detail="Token expirado o inválido")
+
+    username = payload.get("sub")
+    user = db.exec(select(User).where(User.username == username)).first()
     
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return user
     
 
 
