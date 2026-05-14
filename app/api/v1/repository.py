@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import Request
 from app.models.auth import User
-from app.core.security import verify_password, get_token_from_cookie, get_token_from_header
+from app.core.security import verify_password, get_token_from_cookie, get_token_from_header, decode_token
 
 
 class UserRepository:
@@ -45,6 +45,6 @@ class UserRepository:
         
         return token    
    
-    
-    
+    def decode(token_string: str):
+        return decode_token(token_string)
     
