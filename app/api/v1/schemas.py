@@ -1,9 +1,9 @@
 #Modelos pydantic 
 #Tenemos pensado que la cokkie dure una cantidad de tiempo 
-from typing import Literal
+from typing import Literal, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
-
-
+# ya me arte de estar cambiando odio las cookies y los headers
 #Aqui estuvo canto. Ya canto se vino a qui 
 
 class Registro(BaseModel):
@@ -13,11 +13,12 @@ class Registro(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
 class Login(Registro):
-    id : int 
-    is_active : bool
+    username: str
+    password: str
+    full_name: Optional[str] = None
 
 class UserOut(BaseModel):
-    id: str
+    id: int
     username: str
     full_name: str = Field(alias="name")
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)

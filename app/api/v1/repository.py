@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from fastapi import Request
+from fastapi import HTTPException, Request ,status
+import jwt
 from app.models.auth import User
+from app.core.config import settings
 from app.core.security import verify_password, get_token_from_cookie, get_token_from_header, decode_token
 
 
@@ -48,3 +50,41 @@ class UserRepository:
     def decode(token_string: str):
         return decode_token(token_string)
     
+    @staticmethod
+    def extract_token_and_origin(request: Request, authorization: str | None):
+        token = None
+        authenticated_via_cookie = False
+        
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.removeprefix("Bearer ").strip()
+        else:
+            cookie_value = request.cookies.get(settings.AUTH_COOKIE_NAME) if request else None
+            if cookie_value:
+                authenticated_via_cookie = True
+                if cookie_value.startswith("Bearer "):
+                    token = cookie_value.removeprefix("Bearer ").strip()
+                else:
+                    token = cookie_value.strip()
+        
+        return token, authenticated_via_cookie
+    
+    @staticmethod
+    def decode_token_or_raise(token: str):
+        try:
+            payload_jwt = jwt.decode(
+                token,
+                settings.AUTH_SECRET_KEY.get_secret_value(),
+                algorithms=[settings.AUTH_ALGORITHM],
+            )
+        except jwt.PyJWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido"
+            )
+        user_id = str(payload_jwt.get("sub", "")).strip()
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Payload de token inválido"
+            )
+        return user_id
